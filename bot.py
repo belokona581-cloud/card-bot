@@ -13,7 +13,7 @@ from telegram.ext import (
 )
 
 # ---------- НАСТРОЙКИ ----------
-TOKEN = "8729169250:AAG1cOgfwjLKZCGTwgd_Sxhg_nyQc4SZIhw"
+TOKEN = "8729169250:AAFlprl9SEzhNRXSlF8oPMl9QgF98z1ejmM"
 DB_NAME = "cards.db"
 IMAGES_DIR = "images"
 
