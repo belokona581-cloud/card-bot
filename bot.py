@@ -1,10 +1,12 @@
 import asyncio
 import os
 import random
+import threading
 from datetime import date, datetime, timedelta
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import aiosqlite
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -37,6 +39,13 @@ RARITY_WEIGHTS = {
     "epic": 12,
     "legendary": 3,
 }
+
+# ---------- ФИКТИВНЫЙ СЕРВЕР ДЛЯ RENDER ----------
+class DummyHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
 
 # ---------- БАЗА ДАННЫХ ----------
 async def get_db():
@@ -227,7 +236,6 @@ async def collection(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg)
 
 async def album(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Альбом с перелистыванием карт пользователя"""
     user = update.effective_user
     user_cards = await get_user_collection(user.id)
 
@@ -239,7 +247,6 @@ async def album(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_album_card(update, context, 0, new_message=True)
 
 async def album_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка нажатий на кнопки альбома"""
     query = update.callback_query
     await query.answer()
     data = query.data
@@ -277,9 +284,6 @@ async def album_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_album_card(update, context, new_index, new_message=False)
 
 async def show_album_card(update: Update, context: ContextTypes.DEFAULT_TYPE, index: int, new_message: bool):
-    """Показывает карту в альбоме"""
-    from telegram import InputMediaPhoto
-
     user = update.effective_user if new_message else update.callback_query.from_user
     user_cards = context.user_data.get("album_cards", [])
     total = len(user_cards)
@@ -372,6 +376,14 @@ def main():
 
     print("Запуск бота...")
     asyncio.run(init_db())
+
+    # Фиктивный сервер для Render
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), DummyHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    print(f"Сервер на порту {port}")
+
     app.run_polling()
 
 if __name__ == "__main__":
