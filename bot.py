@@ -13,7 +13,7 @@ from telegram.ext import (
 )
 
 # ---------- НАСТРОЙКИ ----------
-TOKEN = "8729169250:AAG1cOgfwjLKZCGTwgd_Sxhg_nyQc4SZIhw"  
+TOKEN = "8729169250:AAG1cOgfwjLKZCGTwgd_Sxhg_nyQc4SZIhw"
 DB_NAME = "cards.db"
 IMAGES_DIR = "images"
 
@@ -321,14 +321,6 @@ async def show_album_card(update: Update, context: ContextTypes.DEFAULT_TYPE, in
         else:
             await query.message.edit_text(caption + "\n\n⚠️ (изображение не найдено)", reply_markup=reply_markup)
 
-        query = update.callback_query
-        if os.path.exists(image_path):
-            with open(image_path, "rb") as photo:
-                await query.message.edit_media(media=photo)
-                await query.message.edit_caption(caption=caption, reply_markup=reply_markup)
-        else:
-            await query.message.edit_text(caption + "\n\n⚠️ (изображение не найдено)", reply_markup=reply_markup)
-
 async def cardinfo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("Использование: /cardinfo ID\nПример: /cardinfo 3")
@@ -370,6 +362,7 @@ def main():
         print(f"Создана папка {IMAGES_DIR}/ — положи туда картинки карт!")
 
     app = Application.builder().token(TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("card", card))
     app.add_handler(CommandHandler("collection", collection))
